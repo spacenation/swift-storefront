@@ -4,12 +4,13 @@ import PackageDescription
 let package = Package(
     name: "Storefront",
     platforms: [
-        .iOS(.v17), .macOS(.v12), .tvOS(.v15), .watchOS(.v10)
+        .iOS(.v17), .macOS(.v14), .tvOS(.v17), .watchOS(.v10)
     ],
     products: [
         .library(name: "Storefront", targets: ["Storefront"])
     ],
     targets: [
-        .target(name: "Storefront")
+        .target(name: "Storefront"),
+        .testTarget(name: "StorefrontTests", dependencies: ["Storefront"])
     ]
 )
