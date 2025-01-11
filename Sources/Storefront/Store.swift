@@ -9,7 +9,8 @@ public enum StoreError: Error {
     case failedVerification
 }
 
-@MainActor public final class Store: ObservableObject {
+@MainActor @Observable
+public final class Store {
     public enum PurchaseFinishedAction {
         case dismissStore
         case noAction
@@ -18,19 +19,19 @@ public enum StoreError: Error {
     
     private let productIdentifiers: Set<String>
     
-    @Published public private(set) var nonConsumables: [Product]
-    @Published public private(set) var subscriptions: [Product]
+    public private(set) var nonConsumables: [Product]
+    public private(set) var subscriptions: [Product]
     
-    @Published public private(set) var purchasedNonConsumables: [Product] = []
-    @Published public private(set) var purchasedSubscriptions: [Product] = []
+    public private(set) var purchasedNonConsumables: [Product] = []
+    public private(set) var purchasedSubscriptions: [Product] = []
     
-    @Published public private(set) var purchasedProductIdentifiers: Set<String>
+    public private(set) var purchasedProductIdentifiers: Set<String>
     
-    @Published public private(set) var purchaseError: (any LocalizedError)?
+    public private(set) var purchaseError: (any LocalizedError)?
 
-    ///
-    private var lastLoadError: Error?
+    public private(set) var purchaseInProgress: Bool
     
+    private var lastLoadError: Error?
     private var productLoadingTask: Task<Void, Never>?
     private var transactionUpdatesTask: Task<Void, Never>?
     private var statusUpdatesTask: Task<Void, Never>?
@@ -43,6 +44,8 @@ public enum StoreError: Error {
         let purchasedProductsArray = userDefaults.object(forKey: "purchasedProducts") as? [String]
         self.purchasedProductIdentifiers = Set(purchasedProductsArray ?? [])
         print("Persisted Purchased Products:", Set(purchasedProductsArray ?? []))
+        
+        self.purchaseInProgress = false
         
         nonConsumables = []
         subscriptions = []
@@ -59,10 +62,12 @@ public enum StoreError: Error {
     }
     
     deinit {
-        productLoadingTask?.cancel()
-        transactionUpdatesTask?.cancel()
-        statusUpdatesTask?.cancel()
-        storefrontUpdatesTask?.cancel()
+        Task { @MainActor [weak self] in
+            self?.productLoadingTask?.cancel()
+            self?.transactionUpdatesTask?.cancel()
+            self?.statusUpdatesTask?.cancel()
+            self?.storefrontUpdatesTask?.cancel()
+        }
     }
     
     @MainActor
@@ -112,6 +117,7 @@ public enum StoreError: Error {
     }
     
     public func purchase(option product: Product) async -> PurchaseFinishedAction {
+        purchaseInProgress = true
         let action: PurchaseFinishedAction
         do {
             let result = try await product.purchase()
@@ -144,6 +150,7 @@ public enum StoreError: Error {
             print("Purchase failed: \(error)")
             action = .noAction
         }
+        purchaseInProgress = false
         return action
     }
     

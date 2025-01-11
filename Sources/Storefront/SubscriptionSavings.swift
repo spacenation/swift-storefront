@@ -19,7 +19,7 @@ public struct SubscriptionSavings {
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     public func formattedPrice(for subscription: Product) -> String {
         let currency = granularPrice.formatted(subscription.priceFormatStyle)
-        let period = granularPricePeriod.formatted(subscription.subscriptionPeriodUnitFormatStyle)
+        let period = granularPricePeriod.formatted(subscription.subscriptionPeriodUnitFormatStyle).lowercased()
         return "\(currency)/\(period)"
     }
 }

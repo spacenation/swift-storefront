@@ -1,16 +1,15 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(
-    name: "StoreKitPlus",
+    name: "Storefront",
     platforms: [
-        .iOS(.v15), .macOS(.v12), .tvOS(.v15), .watchOS(.v8)
+        .iOS(.v17), .macOS(.v12), .tvOS(.v15), .watchOS(.v10)
     ],
     products: [
-        .library(name: "StoreKitPlus", targets: ["StoreKitPlus"])
+        .library(name: "Storefront", targets: ["Storefront"])
     ],
     targets: [
-        .target(name: "StoreKitPlus"),
-        .testTarget(name: "StoreKitPlusTests", dependencies: ["StoreKitPlus"])
+        .target(name: "Storefront")
     ]
 )
