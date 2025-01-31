@@ -19,6 +19,8 @@ public final class Store {
     
     private let productIdentifiers: Set<String>
     
+    public private(set) var currentStorefront: StoreKit.Storefront?
+    
     public private(set) var nonConsumables: [Product]
     public private(set) var subscriptions: [Product]
     
@@ -53,6 +55,9 @@ public final class Store {
         setupListenerTasksIfNecessary()
         
         Task(priority: .background) {
+            // Request storefront
+            self.currentStorefront = await StoreKit.Storefront.current
+            
             //During store initialization, request products from the App Store.
             await self.requestProducts()
             
@@ -196,6 +201,7 @@ public final class Store {
             storefrontUpdatesTask = Task(priority: .background) {
                 for await update in Storefront.updates {
                     print("Storefront changed to \(update)")
+                    currentStorefront = update
                     // Cancel existing loading task if necessary.
                     if let task = productLoadingTask {
                         task.cancel()
