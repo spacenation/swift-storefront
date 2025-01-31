@@ -13,7 +13,7 @@ public struct SubscriptionSavings {
     }
     
     public var formattedPercent: String {
-        return percentSavings.formatted(.percent.precision(.significantDigits(3)))
+        return percentSavings.formatted(.percent.rounded(rule: .down, increment: 1))
     }
     
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
