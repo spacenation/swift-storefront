@@ -281,3 +281,36 @@ public extension Product {
         "\(self.displayPrice)/\(self.subscriptionInfo.subscriptionPeriod.unit.localizedDescription.lowercased())"
     }
 }
+
+public extension Product {
+    // Function to calculate and format the monthly price
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    var priceLabelPerMonth: String {
+        guard let subscription = self.subscription else {
+            return self.displayPrice // Fallback if not a subscription
+        }
+        
+        // Determine the number of months in the subscription period
+        let numberOfUnits: Int
+        switch subscription.subscriptionPeriod.unit {
+        case .year:
+            numberOfUnits = subscription.subscriptionPeriod.value * 12
+        case .month:
+            numberOfUnits = subscription.subscriptionPeriod.value
+        case .week:
+            numberOfUnits = subscription.subscriptionPeriod.value * 4 // Approximate
+        case .day:
+            numberOfUnits = subscription.subscriptionPeriod.value * 30 // Approximate
+        @unknown default:
+            numberOfUnits = 1
+        }
+        
+        // Calculate monthly price
+        let pricePerMonth = self.price / Decimal(numberOfUnits)
+        
+        // Format the price using the product's priceFormatStyle
+        let priceText = self.priceFormatStyle.format(pricePerMonth)
+        
+        return priceText
+    }
+}
