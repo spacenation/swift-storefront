@@ -12,7 +12,7 @@ public enum StoreError: Error {
 @MainActor @Observable
 public final class Store {
     public enum PurchaseFinishedAction {
-        case dismissStore
+        case dismissStore(Transaction)
         case noAction
         case displayError
     }
@@ -137,7 +137,7 @@ public final class Store {
 
                 //Always finish a transaction.
                 await transaction.finish()
-                action = .dismissStore
+                action = .dismissStore(transaction)
             case .pending:
                 print("Purchase pending user action")
                 action = .noAction
