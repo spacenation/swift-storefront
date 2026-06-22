@@ -122,10 +122,38 @@ public final class Store {
     }
     
     public func purchase(option product: Product) async -> PurchaseFinishedAction {
+        await purchase(product, options: [])
+    }
+
+    /// Purchase applying an Apple win-back offer (iOS 18+). The offer is applied
+    /// as a `.winBackOffer` purchase option so the customer is billed the offer price.
+    @available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    public func purchase(option product: Product,
+                         winBackOffer: Product.SubscriptionOffer) async -> PurchaseFinishedAction {
+        await purchase(product, options: [.winBackOffer(winBackOffer)])
+    }
+
+    /// Returns the best win-back offer the current customer is eligible to redeem
+    /// for this subscription, or nil. Eligibility is determined by Apple via the
+    /// subscription's renewal info (`eligibleWinBackOfferIDs`, best-first). iOS 18+.
+    @available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    public func eligibleWinBackOffer(for product: Product) async -> Product.SubscriptionOffer? {
+        guard let sub = product.subscription,
+              let statuses = try? await sub.status else { return nil }
+        for status in statuses {
+            guard case .verified(let renewal) = status.renewalInfo else { continue }
+            for id in renewal.eligibleWinBackOfferIDs {
+                if let offer = sub.winBackOffers.first(where: { $0.id == id }) { return offer }
+            }
+        }
+        return nil
+    }
+
+    private func purchase(_ product: Product, options: Set<Product.PurchaseOption>) async -> PurchaseFinishedAction {
         purchaseInProgress = true
         let action: PurchaseFinishedAction
         do {
-            let result = try await product.purchase()
+            let result = try await product.purchase(options: options)
             switch result {
             case .success(let verification):
                 //Check whether the transaction is verified. If it isn't,
